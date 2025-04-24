@@ -4,25 +4,35 @@ import { Select } from "../components/Select";
 import { useState } from "react";
 import { Upload } from "../components/Upload";
 import { Button } from "../components/Button";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
+
+import fileSvg from "../assets/file.svg";
 
 export function Refund() {
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
+  const [name, setName] = useState("Teste");
+  const [amount, setAmount] = useState("23");
+  const [category, setCategory] = useState("transport");
   const [isloading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<File | null>(null);
 
   const navigate = useNavigate();
+  const params = useParams<{ id: string }>();
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    
-    navigate("/confirm", {state: { fromSubmit : true }});
+
+    if (params.id) {
+      return navigate(-1);
+    }
+
+    navigate("/confirm", { state: { fromSubmit: true } });
   }
 
   return (
-    <form onSubmit={onSubmit} className="bg-gray-500 w-full rounded-xl flex flex-col p-10 gap-6 lg:min-2-[512px]">
+    <form
+      onSubmit={onSubmit}
+      className="bg-gray-500 w-full rounded-xl flex flex-col p-10 gap-6 lg:min-2-[512px]"
+    >
       <header>
         <h1 className="text-xl font-bold text-gray-100">
           Solicitação de reembolso
@@ -32,7 +42,13 @@ export function Refund() {
         </p>
       </header>
 
-      <Input required legend="Nome da solicitação" value={name} onChange={(e) => setName(e.target.value)} />
+      <Input
+        required
+        legend="Nome da solicitação"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        disabled={!!params.id}
+      />
 
       <div className="flex gap-4">
         <Select
@@ -40,6 +56,7 @@ export function Refund() {
           legend="Categoria"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
+          disabled={!!params.id}
         >
           {CATEGORIES_KEYS.map((category) => (
             <option key={category} value={category}>
@@ -48,12 +65,34 @@ export function Refund() {
           ))}
         </Select>
 
-        <Input legend="Valor" required value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <Input
+          legend="Valor"
+          required
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          disabled={!!params.id}
+        />
       </div>
 
-      <Upload filename={fileName && fileName.name} onChange={(e) => e.target.files && setFileName(e.target.files[0])} />
+      {params.id ? (
+        <a
+          href="https://www.instagram.com/dioggo.wernek/"
+          target="_blank"
+          className="text-sm text-green-100 font-semibold flex items-center justify-center gap-2 my-6 hover:opacity-70 transition ease-linear"
+        >
+          <img src={fileSvg} alt="Ícone do arquivo" />
+          Abrir comprovante
+        </a>
+      ) : (
+        <Upload
+          filename={fileName && fileName.name}
+          onChange={(e) => e.target.files && setFileName(e.target.files[0])}
+        />
+      )}
 
-      <Button type="submit" isLoading={isloading}>Enviar</Button>
+      <Button type="submit" isLoading={isloading}>
+        {params.id ? "Voltar" : "Enviar"}
+      </Button>
     </form>
   );
 }
