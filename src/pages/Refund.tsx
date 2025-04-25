@@ -1,5 +1,5 @@
 import { CATEGORIES, CATEGORIES_KEYS } from "../utils/categories";
-import { Input } from "../components/input";
+import { Input } from "../components/Input";
 import { Select } from "../components/Select";
 import { useState } from "react";
 import { Upload } from "../components/Upload";
@@ -7,25 +7,73 @@ import { Button } from "../components/Button";
 import { useNavigate, useParams } from "react-router";
 
 import fileSvg from "../assets/file.svg";
+import { z, ZodError } from "zod";
+import { AxiosError } from "axios";
+import { api } from "../services/api";
+
+const refundSchema = z.object({
+  name: z.string().min(2, "Informe um nome claro para sua solicitação"),
+  category: z.string().min(1, { message: "Selecione uma categoria" }),
+  amount: z.coerce
+    .number({ message: "Informe um valor válido" })
+    .positive("Informe um valor válido"),
+});
 
 export function Refund() {
-  const [name, setName] = useState("Teste");
-  const [amount, setAmount] = useState("23");
-  const [category, setCategory] = useState("transport");
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
   const [isloading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<File | null>(null);
 
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (params.id) {
       return navigate(-1);
     }
 
-    navigate("/confirm", { state: { fromSubmit: true } });
+    try {
+      setIsLoading(true)
+
+      if (!fileName) {
+        return alert("Selecione um comprovante");
+      }
+
+      const fileUploadForm = new FormData();
+      fileUploadForm.append("file", fileName);
+
+      const response = await api.post("/uploads", fileUploadForm)
+
+      const data = refundSchema.parse({
+        name,
+        category,
+        amount: amount.replace(",", "."),
+      })
+
+      await api.post("/refunds", {
+        ...data, filename: response.data.filename
+      })
+
+      navigate("/confirm", { state: { fromSubmit: true } });
+    } catch (error) {
+      console.log(error);
+
+      if(error instanceof ZodError) {
+        return alert(error.issues[0].message)
+      }
+
+      if(error instanceof AxiosError) {
+        return alert(error.response?.data.message) 
+      }
+
+      alert("Ocorreu um erro inesperado, tente novamente mais tarde");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (

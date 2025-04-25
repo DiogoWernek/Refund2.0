@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import SearchSvg from "../assets/search.svg";
 
@@ -8,7 +8,8 @@ import { RefundItem, RefundItemProps } from "../components/RefundItem";
 import { CATEGORIES } from "../utils/categories";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Pagination } from "../components/Pagination";
-
+import { api } from "../services/api";
+import { AxiosError } from "axios";
 
 const REFUND_EXAMPLE = {
   id: "123",
@@ -18,17 +19,36 @@ const REFUND_EXAMPLE = {
   categoryImg: CATEGORIES["transport"].icon,
 };
 
+const PER_PAGE = 5;
+
 export function Dashboard() {
   const [name, setName] = useState("");
   const [page, setPage] = useState(1);
-  const [totalOfPages, setTotalOfPages] = useState(10);
+  const [totalOfPages, setTotalOfPages] = useState(0);
   const [refunds, setRefunds] = useState<RefundItemProps[]>([REFUND_EXAMPLE]);
 
-  function fetchRefunds(e: React.FormEvent) {
-    e.preventDefault();
+  async function fetchRefunds() {
+    try {
+      const response = await api.get(
+        `/refunds?name=${name.trim()}&page=${page}&perPage=${PER_PAGE}`
+      );
+  
+      console.log(response.data);
+    } catch (error) {
+      console.log(error)
 
-    console.log(name);
+      if(error instanceof AxiosError) {
+        alert(error.response?.data.message)
+      }
+
+      alert("Não foi possível carregar as solicitações")
+    }
+
   }
+
+  useEffect(() => {
+    fetchRefunds();
+  },[])
 
   function handlePagination(action: "next" | "previous") {
     setPage((prevPage) => {
@@ -63,11 +83,13 @@ export function Dashboard() {
       </form>
 
       <div className="my-6 flex flex-col gap-4 max-h-[342px] overflow-y-scroll">
-        {
-          refunds.map((item) => (
-            <RefundItem key={item.id} data={REFUND_EXAMPLE} href={`/refund/${item.id}`} />
-          ))
-        }
+        {refunds.map((item) => (
+          <RefundItem
+            key={item.id}
+            data={REFUND_EXAMPLE}
+            href={`/refund/${item.id}`}
+          />
+        ))}
       </div>
 
       <Pagination

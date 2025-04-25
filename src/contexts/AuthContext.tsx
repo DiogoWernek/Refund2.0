@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { api } from "../services/api";
 
 type AuthContext = {
   isLoading?: boolean;
@@ -22,6 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
     localStorage.setItem(`${LOCAL_STORAGE_KEY}:token`, data.token);
 
+    api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+
     setSession(data);
   }
 
@@ -30,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(`${LOCAL_STORAGE_KEY}:user`);
     localStorage.removeItem(`${LOCAL_STORAGE_KEY}:token`);
 
-    window.location.assign("/")
+    window.location.assign("/");
   }
 
   function loadUser() {
@@ -38,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem(`${LOCAL_STORAGE_KEY}:token`);
 
     if (user && token) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setSession({ user: JSON.parse(user), token });
     }
 
@@ -46,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadUser();
-  },[])
+  }, []);
 
   return (
     <AuthContext.Provider value={{ session, save, isLoading, remove }}>
