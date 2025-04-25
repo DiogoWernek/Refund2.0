@@ -2,12 +2,13 @@ import { useState } from "react";
 
 import SearchSvg from "../assets/search.svg";
 
-import { Input } from "../components/input";
+import { Input } from "../components/Input";
 import { Button } from "../components/Button";
 import { RefundItem, RefundItemProps } from "../components/RefundItem";
 import { CATEGORIES } from "../utils/categories";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Pagination } from "../components/Pagination";
+
 
 const REFUND_EXAMPLE = {
   id: "123",

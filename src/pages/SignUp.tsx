@@ -1,18 +1,68 @@
 import { useState } from "react";
 import { Button } from "../components/Button";
-import { Input } from "../components/input";
+import { Input } from "../components/Input";
+import { z, ZodError } from "zod";
+import { useNavigate } from "react-router";
+import { AxiosError } from "axios";
+
+import { api } from "../services/api";
+
+const signUpSchema = z
+  .object({
+    name: z.string().trim().min(1, { message: "Informe o nome" }),
+    email: z.string().email({ message: "E-mail inválido" }),
+    password: z
+      .string()
+      .min(6, { message: "A senha deve ter no mínimo 6 caracteres" }),
+    passwordConfirm: z.string({ message: "Confirmação de senha obrigatória" }),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "As senhas não conferem",
+    path: ["passwordConfirm"],
+  });
 
 export function SingUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  function OnSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const navigate = useNavigate();
+
+  async function OnSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    console.log(name, email, password, confirmPassword);
+    try {
+      setIsLoading(true);
+
+      const data = signUpSchema.parse({
+        name,
+        email,
+        password,
+        passwordConfirm,
+      });
+
+      await api.post("/users", data);
+
+      if (confirm("Cadastrado com suicesso, deseja fazer login?")) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.log(error);
+
+      if (error instanceof ZodError) {
+        return alert(error.issues[0].message);
+      }
+
+      if (error instanceof AxiosError) {
+        return alert(error.response?.data.message);
+      }
+
+      alert("Não foi possível fazer o login, tente novamente mais tarde");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -24,7 +74,7 @@ export function SingUp() {
         onChange={(e) => setName(e.target.value)}
       />
 
-<Input
+      <Input
         required
         legend="E-mail"
         type="email"
@@ -40,12 +90,12 @@ export function SingUp() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-<Input
+      <Input
         required
         legend="Confirmar Senha"
         type="password"
         placeholder="123456"
-        onChange={(e) => setConfirmPassword(e.target.value)}
+        onChange={(e) => setPasswordConfirm(e.target.value)}
       />
 
       <Button type="submit" isLoading={isLoading}>
