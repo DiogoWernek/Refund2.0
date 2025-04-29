@@ -1,7 +1,7 @@
 import { CATEGORIES, CATEGORIES_KEYS } from "../utils/categories";
 import { Input } from "../components/Input";
 import { Select } from "../components/Select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Upload } from "../components/Upload";
 import { Button } from "../components/Button";
 import { useNavigate, useParams } from "react-router";
@@ -10,6 +10,7 @@ import fileSvg from "../assets/file.svg";
 import { z, ZodError } from "zod";
 import { AxiosError } from "axios";
 import { api } from "../services/api";
+import { formatCurrency } from "../utils/formatCurrency";
 
 const refundSchema = z.object({
   name: z.string().min(2, "Informe um nome claro para sua solicitação"),
@@ -25,6 +26,7 @@ export function Refund() {
   const [category, setCategory] = useState("");
   const [isloading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<File | null>(null);
+  const [fileURL, setFileURL] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
@@ -76,6 +78,32 @@ export function Refund() {
     }
   }
 
+  async function fetchRefund(id: string) {
+    try {
+      const response = await api.get<RefundAPIResponse>(`/refunds/${id}`)
+
+      setName(response.data.name);
+      setCategory(response.data.category);
+      setAmount(formatCurrency(response.data.amount));
+      setFileURL(response.data.filename);
+    } catch (error) {
+      console.log(error);
+
+      if(error instanceof AxiosError) {
+        alert(error.response?.data.message)
+      }
+
+      alert("Não foi possível carregar a solicitação")
+      
+    }
+  }
+
+  useEffect(() => {
+    if(params.id) {
+      fetchRefund(params.id)
+    }
+  },[params.id])
+
   return (
     <form
       onSubmit={onSubmit}
@@ -122,9 +150,9 @@ export function Refund() {
         />
       </div>
 
-      {params.id ? (
+      {params.id && fileURL ? (
         <a
-          href="https://www.instagram.com/dioggo.wernek/"
+          href={`http://localhost:3333/uploads/${fileURL}`}
           target="_blank"
           className="text-sm text-green-100 font-semibold flex items-center justify-center gap-2 my-6 hover:opacity-70 transition ease-linear"
         >

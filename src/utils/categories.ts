@@ -21,7 +21,7 @@ export const CATEGORIES = {
     name: "Transporte",
     icon: TransportSvg,
   },
-  accomodation: {
+  accommodation: {
     name: "Hospedagem",
     icon: AccomodationSvg,
   },

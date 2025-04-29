@@ -11,29 +11,31 @@ import { Pagination } from "../components/Pagination";
 import { api } from "../services/api";
 import { AxiosError } from "axios";
 
-const REFUND_EXAMPLE = {
-  id: "123",
-  name: "Diogo",
-  category: "Transporte",
-  amount: formatCurrency(34.5),
-  categoryImg: CATEGORIES["transport"].icon,
-};
-
 const PER_PAGE = 5;
 
 export function Dashboard() {
   const [name, setName] = useState("");
   const [page, setPage] = useState(1);
   const [totalOfPages, setTotalOfPages] = useState(0);
-  const [refunds, setRefunds] = useState<RefundItemProps[]>([REFUND_EXAMPLE]);
+  const [refunds, setRefunds] = useState<RefundItemProps[]>([]);
 
   async function fetchRefunds() {
     try {
-      const response = await api.get(
+      const response = await api.get<RefundsPaginationAPIResponse>(
         `/refunds?name=${name.trim()}&page=${page}&perPage=${PER_PAGE}`
       );
   
-      console.log(response.data);
+      setRefunds(
+        response.data.refunds.map((refund) => ({
+          id: refund.id,
+          name: refund.user.name,
+          description: refund.name,
+          amount: formatCurrency(refund.amount),
+          categoryImg: CATEGORIES[refund.category].icon,
+        }))
+      )
+
+      setTotalOfPages(response.data.pagination.totalPages)
     } catch (error) {
       console.log(error)
 
@@ -46,9 +48,10 @@ export function Dashboard() {
 
   }
 
-  useEffect(() => {
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
     fetchRefunds();
-  },[])
+  }
 
   function handlePagination(action: "next" | "previous") {
     setPage((prevPage) => {
@@ -63,13 +66,17 @@ export function Dashboard() {
       return prevPage;
     });
   }
+  
+  useEffect(() => {
+    fetchRefunds();
+  },[page])
 
   return (
     <div className="bg-gray-500 rounded-xl p-10 md:min-w-[768px]">
       <h1 className="text-gray-100 font-bold text-xl flex-1">Solicitações</h1>
 
       <form
-        onSubmit={fetchRefunds}
+        onSubmit={onSubmit}
         className="flex flex-1 items-center justify-between pb-6 border-b-[1px] border-b-gray-400 md:flex-row gap-2 mt-6"
       >
         <Input
@@ -86,7 +93,7 @@ export function Dashboard() {
         {refunds.map((item) => (
           <RefundItem
             key={item.id}
-            data={REFUND_EXAMPLE}
+            data={item}
             href={`/refund/${item.id}`}
           />
         ))}
