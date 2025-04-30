@@ -152,7 +152,7 @@ export function Refund() {
 
       {params.id && fileURL ? (
         <a
-          href={`http://localhost:3333/uploads/${fileURL}`}
+          href={`https://refundapi.onrender.com/uploads/${fileURL}`}
           target="_blank"
           className="text-sm text-green-100 font-semibold flex items-center justify-center gap-2 my-6 hover:opacity-70 transition ease-linear"
         >
