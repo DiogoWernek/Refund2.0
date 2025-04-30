@@ -31,6 +31,10 @@ export function Refund() {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
 
+  if (!params) {
+    setIsLoading(true);
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
