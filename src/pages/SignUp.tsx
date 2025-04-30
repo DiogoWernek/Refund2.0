@@ -45,7 +45,7 @@ export function SingUp() {
 
       await api.post("/users", data);
 
-      if (confirm("Cadastrado com suicesso, deseja fazer login?")) {
+      if (confirm("Cadastrado com sucesso, deseja fazer login?")) {
         navigate("/");
       }
     } catch (error) {

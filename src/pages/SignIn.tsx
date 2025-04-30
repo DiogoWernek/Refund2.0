@@ -50,7 +50,7 @@ export function SingIn() {
       <Input
         name="email"
         required
-        legend="E-mail"
+        legend="E-mail (Email Admin: diogo@top.com tudo minúsculo)"
         type="email"
         placeholder="seu@email.com"
       />
@@ -58,7 +58,7 @@ export function SingIn() {
       <Input
         name="password"
         required
-        legend="Senha"
+        legend="Senha (Senha Admin: 123456, com o login admin acima, você poderá acessar todas solicitações)"
         type="password"
         placeholder="123456"
       />
