@@ -102,6 +102,8 @@ export function Refund() {
     if(params.id) {
       fetchRefund(params.id)
     }
+
+    console.log(params.id)
   },[params.id])
 
   return (
