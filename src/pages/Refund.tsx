@@ -103,12 +103,11 @@ export function Refund() {
   }
 
   useEffect(() => {
-    if(params.id) {
-      fetchRefund(params.id)
-    }
 
-    console.log(params.id)
-  },[params.id])
+      fetchRefund("c2f5cef1-37ff-4f22-b16b-d423ccd8b795")
+
+
+  },[])
 
   return (
     <form
